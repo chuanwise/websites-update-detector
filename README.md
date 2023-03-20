@@ -14,16 +14,40 @@
 
 ## 配置
 
+### 配置文件
+
 ```yaml
+# 网站设置
+websites:
+  # 可以检测多个网站，名字只要不重复即可
+  xidian:
+    # 在邮箱标题和正文中出现的网站名，可以重复
+    name: website
+    # 网站
+    url: url
+    # 检测器，用于获取网站信息
+    detector:
+      # 通过正则表达式检测，下面是一个例子
+      type: regexp
+      exp: target="_blank">(?<title>.+?)</a><span>
+      group: title
+    # 检测周期。
+    # 实际检测周期为本周期加位于 [0, randomMillisecondsScale] 的一个随机值，单位毫秒
+    period: 60000
+    # 接收方邮箱列表。当网站出现更新，则这些人会收到邮件
+    emails:
+      # 你的邮箱
+      - you@domain
+      
 # smtp 设置，用于发送服务器
 smtp:
   # smtp 服务器地址和端口，如 QQ smtp 服务器（SSL）
   host: smtp.qq.com
   port: 465
   # smtp 邮箱，用于发送邮件
-  email: your-qq@qq.com
+  email: you@domain
   # 授权码，为 null 时表示无需登录
-  auth: your-qq-email-smtp-code
+  auth: auth
   # 是否输出调试信息
   debug: true
 
@@ -33,27 +57,56 @@ randomMillisecondsScale: 180000
 # 查询失败多少次后取消查询任务
 maxFailCount: 1
 
-# 网站设置
-websites:
-  # 可以检测多个网站，名字只要不重复即可
-  xidian:
-    # 在邮箱标题和正文中出现的网站名，可以重复
-    name: website-name
-    # 网站
-    url: <url>
-    # 检测器，用于获取网站信息
-    detector:
-      # 通过正则表达式检测，下面是一个例子
-      type: regexp
-      regexp: target="_blank">(?<title>.+?)</a><span>
-      group: title
-    # 检测周期。
-    # 实际检测周期为本周期加位于 [0, randomMillisecondsScale] 的一个随机值，单位毫秒
-    period: 60000
-    # 接收方邮箱列表。当网站出现更新，则这些人会收到邮件
-    emails:
-      # 你的邮箱
-      - <your email>
+emails:
+  - you@domain
+```
+
+### 探测器
+
+#### 正则提取探测器
+
+此探测器需要给定正则表达式，探测器将网站内容中所有符合正则表达式的部分提取出来形成集合，并比对集合差异。若出现变动，则判定为出现更新。此探测器适合用于检测网站公告等信息的变动。
+
+例如，这是检测网站所有正整数的探测器，若出现变化则认为网站更新：
+
+```yaml
+detector:
+  type: regexp
+  exp: \d+
+```
+
+正则表达式中可以出现 `(?<name>exp)` 定义变量，并用 `group` 属性说明需要注意的变量名。例如：
+
+```yaml
+detector:
+  type: regexp
+  exp: target="_blank">(?<title>.+?)</a><span>
+  group: title
+```
+
+这样每次探测便会提取变量 `title` 并检查它的集合。
+
+#### `XPath` 提取探测器
+
+此探测器和正则提取探测器很类似，通过 `XPath` 表达式提取节点形成集合，并比对集合差异。若出现变动，则判定为出现更新。此探测器适合用于检测网站公告等信息的变动。
+
+```yaml
+detector:
+  type: xpath
+  exp: /root
+```
+
+上述例子将检查根部的 `root` 节点并检查差异。
+
+#### `MD5` 探测器
+
+此探测器将会在每次获取网站内容并计算 `MD5`，若前后两次计算结果不一致即判定为出现更新。请慎用此探测器，因为部分网站可能存在时间、访问次数等统计，可能导致每次网站的 `MD5` 值都不同。
+
+探测器设置：
+
+```yaml
+detector:
+  type: md5
 ```
 
 ## 快速开始

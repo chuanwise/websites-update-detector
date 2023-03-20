@@ -1,6 +1,20 @@
 # This is the default configuration file for websites-update-detector
 # @see https://github.com/Chuanwise/websites-update-detector
 
+#websites:
+#  xidian:
+#    # name is only used in email
+#    name: website-name
+#    # url is used to query and send email
+#    url: <url>
+#    detector:
+#      type: regexp
+#      exp: target="_blank">(?<title>.+?)</a><span>
+#      group: title
+#    period: 60000
+#    emails:
+#      - <your email>
+
 # smtp servers for sending notification
 #smtp:
 #  host: smtp.qq.com
@@ -19,17 +33,3 @@
 
 # random query period scale
 #randomMillisecondsScale: 180000
-
-#websites:
-#  xidian:
-#    # name is only used in email
-#    name: website-name
-#    # url is used to query and send email
-#    url: <url>
-#    detector:
-#      type: regexp
-#      regexp: target="_blank">(?<title>.+?)</a><span>
-#      group: title
-#    period: 60000
-#    emails:
-#      - <your email>
