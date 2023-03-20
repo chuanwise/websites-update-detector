@@ -9,7 +9,6 @@
 #    email: your-qq@qq.com
 #    # authCode is nullable
 #    authCode: your-qq-email-smtp-code
-#    ssl: true
 #    debug: true
 
 # random query period scale

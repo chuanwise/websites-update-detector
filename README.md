@@ -26,8 +26,6 @@ smtp:
     email: your-qq@qq.com
     # 授权码，为 null 时表示无需登录
     authCode: your-qq-email-smtp-code
-    # 是否开启 SSL
-    ssl: true
     # 是否输出调试信息
     debug: true
 
@@ -63,22 +61,20 @@ websites:
 
 ### 直接部署
 
-下载最新的 RELEASE
+下载最新的 [RELEASE](https://github.com/Chuanwise/websites-update-detector/releases/) ，在服务器创建一个文件夹作为工作目录，将 `Jar` 文件放入其中。
 
-## 常见问题
-
-### `MessagingException`
-
-如果出现 `Could not connect to SMTP host: smtp.qq.com, port: 465`，请在任意位置下创建文件（文件名自定，例如 `java.security`），内容如下：
+创建文件 `java.security`，内容填写：
 
 ```
 jdk.tls.disabledAlgorithms=SSLv3, TLSv1.1, RC4, DES, MD5withRSA, DH keySize < 1024, EC keySize < 224, 3DES_EDE_CBC, anon, NULL, include jdk.disabled.namedCurves
 ```
 
-随后在程序的启动参数中添加：
+创建启动脚本，内容为：
 
-```
--Djava.security.properties=${HOME}/.custom.java.security
+```shell
+java -Djava.security.properties=${path}/java.security -jar ${jar}
 ```
 
-其中 `=` 后面填写绝对路径。
+（其中 `=` 后面填写绝对路径）。
+
+随后启动程序即可。

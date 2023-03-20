@@ -85,7 +85,6 @@ public class Configuration {
         private final int port;
         private final String email;
         private final String authCode;
-        private final boolean ssl;
         private final boolean debug;
         private volatile Session session;
         
@@ -95,11 +94,10 @@ public class Configuration {
             this.port = 0;
             this.email = null;
             this.authCode = null;
-            this.ssl = false;
             this.debug = false;
         }
     
-        public Smtp(String host, int port, String email, String authCode, boolean ssl, boolean debug) {
+        public Smtp(String host, int port, String email, String authCode, boolean debug) {
             Objects.requireNonNull(host, "Host is null!");
             Objects.requireNonNull(email, "Email is null!");
             if (host.isEmpty()) {
@@ -116,7 +114,6 @@ public class Configuration {
             this.port = port;
             this.email = email;
             this.authCode = authCode;
-            this.ssl = ssl;
             this.debug = debug;
         }
     
@@ -136,10 +133,6 @@ public class Configuration {
             return authCode;
         }
     
-        public boolean isSsl() {
-            return ssl;
-        }
-    
         public boolean isDebug() {
             return debug;
         }
@@ -157,7 +150,7 @@ public class Configuration {
                         properties.put("mail.smtp.host", host);
                         properties.put("mail.smtp.port", 465);
                         properties.put("mail.smtp.auth", isAuth());
-                        properties.put("mail.smtp.ssl.enable", ssl);
+                        properties.put("mail.smtp.ssl.enable", true);
                         properties.put("mail.debug", debug);
     
                         final MailSSLSocketFactory sf;
