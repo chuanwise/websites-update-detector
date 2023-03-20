@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 
 group 'cn.chuanwise'
@@ -7,6 +8,13 @@ version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+}
+
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'cn.chuanwise.wud.WebsitesUpdateDetectorMain'
+    }
 }
 
 dependencies {
