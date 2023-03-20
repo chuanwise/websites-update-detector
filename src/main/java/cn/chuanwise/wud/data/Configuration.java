@@ -86,7 +86,9 @@ public class Configuration {
         private final String email;
         private final String authCode;
         private final boolean debug;
+        
         private volatile Session session;
+        private volatile Transport transport;
         
         // for deserializer
         private Smtp() {
@@ -188,7 +190,19 @@ public class Configuration {
      */
     private final long randomMillisecondsScale = TimeUnit.MINUTES.toMicros(3);
     
+    private final int maxFailCount = 1;
+    
+    private final Set<String> emails = new HashSet<>();
+    
     private final Map<String, Smtp> smtp = new HashMap<>();
+    
+    public int getMaxFailCount() {
+        return maxFailCount;
+    }
+    
+    public Set<String> getEmails() {
+        return emails;
+    }
     
     public long getRandomMillisecondsScale() {
         return randomMillisecondsScale;

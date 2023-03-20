@@ -14,6 +14,7 @@ import java.text.DateFormat;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -99,6 +100,7 @@ public class WebsitesUpdateDetectorMain {
             private volatile int times = 0;
             
             private volatile Object cache;
+            private volatile int failCount = 0;
     
             public DetectorTask(String name, Configuration.Website website) {
                 this.name = name;
@@ -133,6 +135,9 @@ public class WebsitesUpdateDetectorMain {
                         info("next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
                             " ( after " + period + " milliseconds ), listening...");
                         
+                        synchronized (this) {
+                            failCount++;
+                        }
                     }
                 } else {
                     final Object currCache;
@@ -149,6 +154,9 @@ public class WebsitesUpdateDetectorMain {
                             info("No differences. next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
                                 " ( after " + period + " milliseconds ), listening...");
                         } else {
+                            synchronized (this) {
+                                cache = currCache;
+                            }
                             warn("Difference occurred! Previous value is " + prevCache + ", current value is " + currCache + ", post message!");
                             for (Map.Entry<String, Configuration.Smtp> entry : configuration.getSmtp().entrySet()) {
                                 final String name = entry.getKey();
@@ -187,10 +195,67 @@ public class WebsitesUpdateDetectorMain {
                         e.printStackTrace();
                         info("next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
                             " ( after " + period + " milliseconds ), listening...");
+                        
+                        synchronized (this) {
+                            failCount++;
+                        }
                     }
                 }
-                
-                service.schedule(this, period, TimeUnit.MILLISECONDS);
+    
+                final int failCount;
+                synchronized (this) {
+                    failCount = this.failCount;
+                }
+                if (failCount >= configuration.getMaxFailCount()) {
+                    error("fail count >= max fail count, cancelled task");
+    
+                    final Set<String> emails = configuration.getEmails();
+                    for (Map.Entry<String, Configuration.Smtp> entry : configuration.getSmtp().entrySet()) {
+                        final String name = entry.getKey();
+                        final Configuration.Smtp smtp = entry.getValue();
+    
+                        final Transport transport;
+                        try {
+                            transport = smtp.getTransport();
+                        } catch (MessagingException e) {
+                            error("Can not open transport for email: " + smtp.getEmail());
+                            e.printStackTrace();
+                            continue;
+                        }
+                        try {
+                            MimeMessage mimeMessage = new MimeMessage(smtp.getSession());
+                            mimeMessage.setFrom(new InternetAddress(smtp.getEmail()));
+    
+                            // send message to all receipts
+                            final String subject = "[提示] 程序自动取消了对 " + name + " 的探测";
+                            final String content = "<h1>" + name + " 探测失败次数已达上限</h1>\n" +
+                                "<h2>查询状态</h2>\n" +
+                                "<ul>\n" +
+                                "<li><b>查询时间</b>：" + DateFormat.getDateTimeInstance().format(System.currentTimeMillis()) + "</p></li>\n" +
+                                "<li><b>网址</b>：" + website.getUrl() + "</li>\n" +
+                                "<li><b>失败次数</b>：" + failCount + "</li>\n" +
+                                "</ul>";
+    
+                            for (String email : emails) {
+                                mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email));
+                                mimeMessage.setSubject(subject);
+                                mimeMessage.setContent(content, "text/html;charset=UTF-8");
+                                transport.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
+                            }
+                        } catch (Exception e) {
+                            error("Can not send notification");
+                            e.printStackTrace();
+                        } finally {
+                            try {
+                                transport.close();
+                            } catch (MessagingException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                } else {
+                    service.schedule(this, period, TimeUnit.MILLISECONDS);
+                }
             }
             
             private void info(String content) {
