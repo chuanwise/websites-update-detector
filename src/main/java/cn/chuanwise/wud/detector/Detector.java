@@ -1,6 +1,7 @@
 package cn.chuanwise.wud.detector;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.slf4j.Logger;
 
 import java.net.URL;
 
@@ -17,7 +18,9 @@ public interface Detector {
     /**
      * 探测网站内容
      *
-     * @return 网站内容
+     * @param url    网址
+     * @param logger 日志
+     * @return 报告信息，若为 null 表示无信息报告
      */
-     Object detect(URL url) throws Exception;
+    String detect(URL url, Logger logger) throws Exception;
 }

@@ -84,7 +84,7 @@ public class Configuration {
         private final String host;
         private final int port;
         private final String email;
-        private final String authCode;
+        private final String auth;
         private final boolean debug;
         
         private volatile Session session;
@@ -94,11 +94,11 @@ public class Configuration {
             this.host = null;
             this.port = 0;
             this.email = null;
-            this.authCode = null;
+            this.auth = null;
             this.debug = false;
         }
     
-        public Smtp(String host, int port, String email, String authCode, boolean debug) {
+        public Smtp(String host, int port, String email, String auth, boolean debug) {
             Objects.requireNonNull(host, "Host is null!");
             Objects.requireNonNull(email, "Email is null!");
             if (host.isEmpty()) {
@@ -114,7 +114,7 @@ public class Configuration {
             this.host = host;
             this.port = port;
             this.email = email;
-            this.authCode = authCode;
+            this.auth = auth;
             this.debug = debug;
         }
     
@@ -130,8 +130,8 @@ public class Configuration {
             return email;
         }
     
-        public String getAuthCode() {
-            return authCode;
+        public String getAuth() {
+            return auth;
         }
     
         public boolean isDebug() {
@@ -139,7 +139,7 @@ public class Configuration {
         }
     
         public boolean isAuth() {
-            return authCode != null;
+            return auth != null;
         }
     
         public Session getSession() {
@@ -166,7 +166,7 @@ public class Configuration {
                         
                         final Authenticator authenticator = new Authenticator() {
                             protected PasswordAuthentication getPasswordAuthentication() {
-                                return new PasswordAuthentication(email, authCode);
+                                return new PasswordAuthentication(email, auth);
                             }
                         };
     
@@ -179,7 +179,7 @@ public class Configuration {
     
         public Transport getTransport() throws MessagingException {
             final Transport transport = getSession().getTransport();
-            transport.connect(host, email, authCode);
+            transport.connect(host, email, auth);
             return transport;
         }
     }
@@ -189,11 +189,14 @@ public class Configuration {
      */
     private final long randomMillisecondsScale = TimeUnit.MINUTES.toMicros(3);
     
+    /**
+     * 最大探测失败次数
+     */
     private final int maxFailCount = 1;
     
     private final Set<String> emails = new HashSet<>();
     
-    private final Map<String, Smtp> smtp = new HashMap<>();
+    private Smtp smtp = null;
     
     public int getMaxFailCount() {
         return maxFailCount;
@@ -211,7 +214,11 @@ public class Configuration {
         return websites;
     }
     
-    public Map<String, Smtp> getSmtp() {
+    public Smtp getSmtp() {
         return smtp;
+    }
+    
+    public void setSmtp(Smtp smtp) {
+        this.smtp = smtp;
     }
 }

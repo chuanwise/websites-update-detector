@@ -17,17 +17,15 @@
 ```yaml
 # smtp 设置，用于发送服务器
 smtp:
-  # name 只要不重复即可，无实际作用
-  name:
-    # smtp 服务器地址和端口，如 QQ smtp 服务器（SSL）
-    host: smtp.qq.com
-    port: 465
-    # smtp 邮箱，用于发送邮件
-    email: your-qq@qq.com
-    # 授权码，为 null 时表示无需登录
-    authCode: your-qq-email-smtp-code
-    # 是否输出调试信息
-    debug: true
+  # smtp 服务器地址和端口，如 QQ smtp 服务器（SSL）
+  host: smtp.qq.com
+  port: 465
+  # smtp 邮箱，用于发送邮件
+  email: your-qq@qq.com
+  # 授权码，为 null 时表示无需登录
+  auth: your-qq-email-smtp-code
+  # 是否输出调试信息
+  debug: true
 
 # 查询周期随机扰动值
 randomMillisecondsScale: 180000

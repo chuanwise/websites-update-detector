@@ -3,13 +3,12 @@
 
 # smtp servers for sending notification
 #smtp:
-#  name:
-#    host: smtp.qq.com
-#    port: 465
-#    email: your-qq@qq.com
-#    # authCode is nullable
-#    authCode: your-qq-email-smtp-code
-#    debug: true
+#  host: smtp.qq.com
+#  port: 465
+#  email: your-qq@qq.com
+#  # auth is nullable
+#  auth: your-qq-email-smtp-code
+#  debug: true
 
 # max fail count to cancel task
 #maxFailCount: 1

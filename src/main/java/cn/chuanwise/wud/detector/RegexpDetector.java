@@ -1,8 +1,11 @@
 package cn.chuanwise.wud.detector;
 
+import org.slf4j.Logger;
+
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -14,7 +17,7 @@ import java.util.regex.Pattern;
  * @author Chuanwise
  */
 public class RegexpDetector
-    implements Detector {
+    extends AbstractCollectionDetector<String> {
     
     private final Charset charset;
     private final String group;
@@ -22,7 +25,6 @@ public class RegexpDetector
     
     public RegexpDetector(Pattern pattern, String group, Charset charset) {
         Objects.requireNonNull(pattern, "Pattern is null!");
-        Objects.requireNonNull(group, "Group is null!");
         
         this.pattern = pattern;
         this.group = group;
@@ -30,25 +32,21 @@ public class RegexpDetector
     }
     
     @Override
-    public List<String> detect(URL url) throws Exception {
+    protected Collection<String> detect0(URL url, Logger logger) throws Exception {
+        final List<String> list = new ArrayList<>();
+    
         final String content = new String(url.openConnection().getInputStream().readAllBytes(), charset);
         final Matcher matcher = pattern.matcher(content);
-        final List<String> results = new ArrayList<>();
-        while (matcher.find()) {
-            results.add(matcher.group(group));
+        if (group == null) {
+            while (matcher.find()) {
+                list.add(content.substring(matcher.start(), matcher.end()));
+            }
+        } else {
+            while (matcher.find()) {
+                list.add(matcher.group(group));
+            }
         }
-        return results;
-    }
     
-    public Charset getCharset() {
-        return charset;
-    }
-    
-    public String getGroup() {
-        return group;
-    }
-    
-    public Pattern getPattern() {
-        return pattern;
+        return list;
     }
 }

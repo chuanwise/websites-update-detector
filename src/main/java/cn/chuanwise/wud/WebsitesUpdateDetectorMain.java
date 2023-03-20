@@ -3,6 +3,8 @@ package cn.chuanwise.wud;
 import cn.chuanwise.wud.data.Configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -27,7 +29,7 @@ public class WebsitesUpdateDetectorMain {
         } else if (args.length == 1) {
             workingDirectory = new File(args[0]);
         } else {
-            System.err.println("Params: [working-directory]");
+            System.err.println("Params: [working-directory = ${user.dir}]");
             return;
         }
         
@@ -76,7 +78,7 @@ public class WebsitesUpdateDetectorMain {
         }
     
         // check if settings is wrong
-        if (configuration.getSmtp().isEmpty()) {
+        if (configuration.getSmtp() == null) {
             System.err.println("Smtp settings is empty, change configuration and restart program, please");
             return;
         }
@@ -97,108 +99,58 @@ public class WebsitesUpdateDetectorMain {
         
             private final String name;
             private final Configuration.Website website;
-            private volatile int times = 0;
-            
-            private volatile Object cache;
+            private final Logger logger;
+    
             private volatile int failCount = 0;
     
             public DetectorTask(String name, Configuration.Website website) {
                 this.name = name;
                 this.website = website;
+                this.logger = LoggerFactory.getLogger(name);
             }
         
             @Override
             public void run() {
-                final int times;
-                synchronized (this) {
-                    times = this.times;
-                    this.times++;
-                }
-    
                 final long period = website.getPeriod() + (random.nextLong() % configuration.getRandomMillisecondsScale());
     
-                if (times == 0) {
-                    try {
-                        info("Initialization...");
-                        
-                        final Object initCache = website.getDetector().detect(website.getUrl());
-                        synchronized (this) {
-                            cache = initCache;
-                        }
-                        
-                        info("Initial value is " + initCache + ", " +
-                            "next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
-                            " ( after " + period + " milliseconds ), listening...");
-                    } catch (Exception e) {
-                        error("Error occurred when initial detecting " + name);
-                        e.printStackTrace();
-                        info("next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
-                            " ( after " + period + " milliseconds ), listening...");
-                        
-                        synchronized (this) {
-                            failCount++;
+                try {
+                    final String message = website.getDetector().detect(website.getUrl(), logger);
+    
+                    if (message != null) {
+                        logger.warn(website.getName() + " updated: ");
+                        logger.warn(message);
+    
+                        final Configuration.Smtp smtp = configuration.getSmtp();
+                        final Transport transport = smtp.getTransport();
+                        try {
+                            MimeMessage mimeMessage = new MimeMessage(smtp.getSession());
+                            mimeMessage.setFrom(new InternetAddress(smtp.getEmail()));
+        
+                            // send message to all receipts
+                            final String subject = website.getName() + "更新！";
+                            final String content = "<h1>" + website.getName() + "出现更新！</h1>\n" +
+                                "<h2>详细信息</h2>\n" +
+                                "<p>" + message + "</p>\n" +
+                                "<h2>查询状态</h2>\n" +
+                                "<ul>\n" +
+                                "<li><b>时间</b>：" + DateFormat.getDateTimeInstance().format(System.currentTimeMillis()) + "</p></li>\n" +
+                                "<li><b>网址</b>：<a href = \"" + website.getUrl() + "\">" + website.getName() + "</a></li>\n" +
+                                "</ul>";
+                            
+                            for (String email : website.getEmails()) {
+                                mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email));
+                                mimeMessage.setSubject(subject);
+                                mimeMessage.setContent(content,"text/html;charset=UTF-8");
+                                transport.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
+                            }
+                        } finally {
+                            transport.close();
                         }
                     }
-                } else {
-                    final Object currCache;
-                    final Object prevCache;
+                } catch (Exception e) {
+                    logger.error("探测" + website.getName() + "时出现异常", e);
                     synchronized (this) {
-                        prevCache = this.cache;
-                    }
-                    
-                    try {
-                        info("Query...");
-                        currCache = website.getDetector().detect(website.getUrl());
-    
-                        if (Objects.equals(currCache, prevCache)) {
-                            info("No differences. next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
-                                " ( after " + period + " milliseconds ), listening...");
-                        } else {
-                            synchronized (this) {
-                                cache = currCache;
-                            }
-                            warn("Difference occurred! Previous value is " + prevCache + ", current value is " + currCache + ", post message!");
-                            for (Map.Entry<String, Configuration.Smtp> entry : configuration.getSmtp().entrySet()) {
-                                final String name = entry.getKey();
-                                final Configuration.Smtp smtp = entry.getValue();
-    
-                                final Transport transport = smtp.getTransport();
-                                try {
-                                    MimeMessage mimeMessage = new MimeMessage(smtp.getSession());
-                                    mimeMessage.setFrom(new InternetAddress(smtp.getEmail()));
-                                    
-                                    // send message to all receipts
-                                    final String subject = "[重要] " + website.getName() + "出现更新！";
-                                    final String content = "<h1>" + website.getName() + " 网站出现更新！</h1>\n" +
-                                        "<h2>查询状态</h2>\n" +
-                                        "<ul>\n" +
-                                        "<li><b>查询时间</b>：" + DateFormat.getDateTimeInstance().format(System.currentTimeMillis()) + "</p></li>\n" +
-                                        "<li><b>网址</b>：" + website.getUrl() + "</li>\n" +
-                                        "</ul>\n" +
-                                        "<h2>前后变化</h2>\n" +
-                                        "<p>更新前：" + prevCache + "</p>\n" +
-                                        "<p>更新后：" + currCache + "</p>";
-                                    
-                                    for (String email : website.getEmails()) {
-                                        mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email));
-                                        mimeMessage.setSubject(subject);
-                                        mimeMessage.setContent(content,"text/html;charset=UTF-8");
-                                        transport.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
-                                    }
-                                } finally {
-                                    transport.close();
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        error("Error occurred when detecting " + name);
-                        e.printStackTrace();
-                        info("next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
-                            " ( after " + period + " milliseconds ), listening...");
-                        
-                        synchronized (this) {
-                            failCount++;
-                        }
+                        failCount++;
                     }
                 }
     
@@ -206,68 +158,54 @@ public class WebsitesUpdateDetectorMain {
                 synchronized (this) {
                     failCount = this.failCount;
                 }
-                if (failCount >= configuration.getMaxFailCount()) {
-                    error("fail count >= max fail count, cancelled task");
+                if (configuration.getMaxFailCount() != -1
+                    && failCount >= configuration.getMaxFailCount()) {
+                    
+                    logger.error(name + "的探测失败次数 " + failCount + " 已达上限 " + configuration.getMaxFailCount() + "，停止对其探测");
     
-                    final Set<String> emails = configuration.getEmails();
-                    for (Map.Entry<String, Configuration.Smtp> entry : configuration.getSmtp().entrySet()) {
-                        final String name = entry.getKey();
-                        final Configuration.Smtp smtp = entry.getValue();
-    
-                        final Transport transport;
-                        try {
-                            transport = smtp.getTransport();
-                        } catch (MessagingException e) {
-                            error("Can not open transport for email: " + smtp.getEmail());
-                            e.printStackTrace();
-                            continue;
+                    final Configuration.Smtp smtp = configuration.getSmtp();
+                    final Transport transport;
+                    try {
+                        transport = smtp.getTransport();
+                    } catch (MessagingException e) {
+                        logger.error("无法连接到 SMTP 服务器：" + smtp.getEmail(), e);
+                        return;
+                    }
+                    
+                    try {
+                        final MimeMessage mimeMessage = new MimeMessage(smtp.getSession());
+                        mimeMessage.setFrom(new InternetAddress(smtp.getEmail()));
+        
+                        // send message to all receipts
+                        final String subject = "程序自动取消了对" + website.getName() + "的探测";
+                        final String content = "<h1>" + website.getName() + " 探测失败次数已达上限</h1>\n" +
+                            "<h2>查询状态</h2>\n" +
+                            "<ul>\n" +
+                            "<li><b>查询时间</b>：" + DateFormat.getDateTimeInstance().format(System.currentTimeMillis()) + "</p></li>\n" +
+                            "<li><b>网址</b>：<a href = \"" + website.getUrl() + "\">" + website.getName() + "</a></li>\n" +
+                            "<li><b>失败次数</b>：" + failCount + "</li>\n" +
+                            "</ul>";
+        
+                        for (String email : configuration.getEmails()) {
+                            mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email));
+                            mimeMessage.setSubject(subject);
+                            mimeMessage.setContent(content, "text/html;charset=UTF-8");
+                            transport.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
                         }
+                    } catch (Exception e) {
+                        logger.error("发送提示消息失败", e);
+                    } finally {
                         try {
-                            MimeMessage mimeMessage = new MimeMessage(smtp.getSession());
-                            mimeMessage.setFrom(new InternetAddress(smtp.getEmail()));
-    
-                            // send message to all receipts
-                            final String subject = "[提示] 程序自动取消了对 " + name + " 的探测";
-                            final String content = "<h1>" + name + " 探测失败次数已达上限</h1>\n" +
-                                "<h2>查询状态</h2>\n" +
-                                "<ul>\n" +
-                                "<li><b>查询时间</b>：" + DateFormat.getDateTimeInstance().format(System.currentTimeMillis()) + "</p></li>\n" +
-                                "<li><b>网址</b>：" + website.getUrl() + "</li>\n" +
-                                "<li><b>失败次数</b>：" + failCount + "</li>\n" +
-                                "</ul>";
-    
-                            for (String email : emails) {
-                                mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email));
-                                mimeMessage.setSubject(subject);
-                                mimeMessage.setContent(content, "text/html;charset=UTF-8");
-                                transport.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
-                            }
-                        } catch (Exception e) {
-                            error("Can not send notification");
-                            e.printStackTrace();
-                        } finally {
-                            try {
-                                transport.close();
-                            } catch (MessagingException e) {
-                                e.printStackTrace();
-                            }
+                            transport.close();
+                        } catch (MessagingException e) {
+                            logger.error("关闭连接失败", e);
                         }
                     }
                 } else {
+                    logger.trace("next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
+                        " ( after " + period + " milliseconds )");
                     service.schedule(this, period, TimeUnit.MILLISECONDS);
                 }
-            }
-            
-            private void info(String content) {
-                System.out.println(DateFormat.getDateTimeInstance().format(System.currentTimeMillis()) + " : " + name + " : INFO : " + content);
-            }
-            
-            private void warn(String content) {
-                System.out.println(DateFormat.getDateTimeInstance().format(System.currentTimeMillis()) + " : " + name + " : WARN : " + content);
-            }
-            
-            private void error(String content) {
-                System.err.println(DateFormat.getDateTimeInstance().format(System.currentTimeMillis()) + " : " + name + " : ERROR : " + content);
             }
         }
         

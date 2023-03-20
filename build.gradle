@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'cn.chuanwise'
-version '1.1.1'
+version '1.2.0'
 
 repositories {
     mavenCentral()
@@ -18,7 +18,10 @@ jar {
 }
 
 dependencies {
-    implementation 'org.jsoup:jsoup:1.15.4'
+    implementation 'org.slf4j:slf4j-api:2.0.5'
+    implementation 'org.slf4j:slf4j-simple:2.0.5'
+    implementation 'log4j:log4j:1.2.17'
+    implementation 'org.slf4j:slf4j-log4j12:2.0.5'
 
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.0-rc1'
 
