@@ -1,0 +1,31 @@
+# This is the default configuration file for websites-update-detector
+# @see https://github.com/Chuanwise/websites-update-detector
+
+# smtp servers for sending notification
+#smtp:
+#  name:
+#    host: smtp.qq.com
+#    port: 587
+#    email: your-qq@qq.com
+#    # authCode is nullable
+#    authCode: your-qq-email-smtp-code
+#    ssl: true
+#    debug: true
+
+# random query period scale
+#randomMillisecondsScale: 180000
+
+#emails:
+#  - <your email>
+
+#websites:
+#  xidian:
+#    # name is only used in email
+#    name: website-name
+#    # url is used to query and send email
+#    url: <url>
+#    detector:
+#      type: regexp
+#      regexp: target="_blank">(?<title>.+?)</a><span>
+#      group: title
+#    period: 60000

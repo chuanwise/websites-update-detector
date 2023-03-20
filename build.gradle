@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+}
+
+group 'cn.chuanwise'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jsoup:jsoup:1.15.4'
+
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.0-rc1'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+
+    implementation 'javax.mail:mail:1.4.7'
+    implementation 'com.sun.mail:javax.mail:1.6.2'
+}
+
+test {
+    useJUnitPlatform()
+}
