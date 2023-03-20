@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
@@ -112,7 +113,7 @@ public class WebsitesUpdateDetectorMain {
                     this.times++;
                 }
     
-                final long period = website.getPeriod() + random.nextLong(configuration.getRandomMillisecondsScale());
+                final long period = website.getPeriod() + (random.nextLong() % configuration.getRandomMillisecondsScale());
     
                 if (times == 0) {
                     try {

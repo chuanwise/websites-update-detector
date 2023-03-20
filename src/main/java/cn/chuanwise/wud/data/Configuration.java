@@ -153,34 +153,30 @@ public class Configuration {
                 synchronized (this) {
                     if (session == null) {
                         final Properties properties = new Properties();
-                        properties.setProperty("mail.smtp.host", host);
-                        properties.setProperty("mail.smtp.port", Integer.toString(port));
-                        properties.setProperty("mail.smtp.auth", Boolean.toString(isAuth()));
+                        properties.put("mail.transport.protocol", "smtp");
+                        properties.put("mail.smtp.host", host);
+                        properties.put("mail.smtp.port", 465);
+                        properties.put("mail.smtp.auth", isAuth());
+                        properties.put("mail.smtp.ssl.enable", ssl);
+                        properties.put("mail.debug", debug);
+    
+                        final MailSSLSocketFactory sf;
+                        try {
+                            sf = new MailSSLSocketFactory();
+                        } catch (GeneralSecurityException e) {
+                            throw new IllegalStateException("Can not create mail ssl socket factory");
+                        }
+                        sf.setTrustAllHosts(true);
+                        properties.put("mail.smtp.ssl.enable", "true");
+                        properties.put("mail.smtp.ssl.socketFactory", sf);
                         
-                        if (ssl) {
-                            final MailSSLSocketFactory socketFactory;
-                            try {
-                                socketFactory = new MailSSLSocketFactory();
-                            } catch (GeneralSecurityException e) {
-                                throw new IllegalStateException("Can not create MailSSLSocketFactory", e);
+                        final Authenticator authenticator = new Authenticator() {
+                            protected PasswordAuthentication getPasswordAuthentication() {
+                                return new PasswordAuthentication(email, authCode);
                             }
-                            socketFactory.setTrustAllHosts(true);
-                            properties.put("mail.smtp.ssl.enable", "true");
-                            properties.put("mail.smtp.ssl.socketFactory", socketFactory);
-                        }
+                        };
     
-                        if (isAuth()) {
-                            session = Session.getDefaultInstance(properties, new Authenticator() {
-                                @Override
-                                protected PasswordAuthentication getPasswordAuthentication() {
-                                    return new PasswordAuthentication(email, authCode);
-                                }
-                            });
-                        } else {
-                            session = Session.getDefaultInstance(properties);
-                        }
-    
-                        session.setDebug(debug);
+                        session = Session.getInstance(properties, authenticator);
                     }
                 }
             }

@@ -19,9 +19,9 @@
 smtp:
   # name 只要不重复即可，无实际作用
   name:
-    # smtp 服务器地址和端口，如 QQ smtp 服务器
+    # smtp 服务器地址和端口，如 QQ smtp 服务器（SSL）
     host: smtp.qq.com
-    port: 587
+    port: 465
     # smtp 邮箱，用于发送邮件
     email: your-qq@qq.com
     # 授权码，为 null 时表示无需登录
@@ -64,3 +64,21 @@ websites:
 ### 直接部署
 
 下载最新的 RELEASE
+
+## 常见问题
+
+### `MessagingException`
+
+如果出现 `Could not connect to SMTP host: smtp.qq.com, port: 465`，请在任意位置下创建文件（文件名自定，例如 `java.security`），内容如下：
+
+```
+jdk.tls.disabledAlgorithms=SSLv3, TLSv1.1, RC4, DES, MD5withRSA, DH keySize < 1024, EC keySize < 224, 3DES_EDE_CBC, anon, NULL, include jdk.disabled.namedCurves
+```
+
+随后在程序的启动参数中添加：
+
+```
+-Djava.security.properties=${HOME}/.custom.java.security
+```
+
+其中 `=` 后面填写绝对路径。

@@ -5,7 +5,7 @@
 #smtp:
 #  name:
 #    host: smtp.qq.com
-#    port: 587
+#    port: 465
 #    email: your-qq@qq.com
 #    # authCode is nullable
 #    authCode: your-qq-email-smtp-code
