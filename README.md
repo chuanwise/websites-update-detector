@@ -60,8 +60,6 @@ websites:
 
 ## 快速开始
 
-### 通过 Docker 部署
-
 ### 直接部署
 
 下载最新的 [RELEASE](https://github.com/Chuanwise/websites-update-detector/releases/) ，在服务器创建一个文件夹作为工作目录，将 `Jar` 文件放入其中。
@@ -80,4 +78,4 @@ java -Djava.security.properties=${path}/java.security -jar ${jar}
 
 （其中 `=` 后面填写绝对路径）。
 
-随后启动程序即可。
+随后启动程序即可。根据程序的提示，修改 `configuration.yml` 里有关邮箱、网站的设置后重启程序即可。
