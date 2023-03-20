@@ -11,6 +11,10 @@
 #    authCode: your-qq-email-smtp-code
 #    debug: true
 
+# email to receive logs
+#email:
+#  - your-email@domain
+
 # random query period scale
 #randomMillisecondsScale: 180000
 
