@@ -88,7 +88,6 @@ public class Configuration {
         private final boolean debug;
         
         private volatile Session session;
-        private volatile Transport transport;
         
         // for deserializer
         private Smtp() {

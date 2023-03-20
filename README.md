@@ -32,6 +32,9 @@ smtp:
 # 查询周期随机扰动值
 randomMillisecondsScale: 180000
 
+# 查询失败多少次后取消查询任务
+maxFailCount: 1
+
 # 网站设置
 websites:
   # 可以检测多个网站，名字只要不重复即可
