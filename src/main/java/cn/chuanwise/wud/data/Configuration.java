@@ -24,22 +24,25 @@ public class Configuration {
         private final URL url;
         private final Detector detector;
         private final long period;
-        
+        private final Set<String> emails;
+    
         // for deserializer
         private Website() {
             this.name = null;
             this.url = null;
             this.detector = null;
             this.period = 0;
+            this.emails = null;
         }
     
-        public Website(String name, URL url, Detector detector, long period) {
+        public Website(String name, URL url, Detector detector, long period, Set<String> emails) {
             Objects.requireNonNull(name, "Name is null!");
             if (name.isEmpty()) {
                 throw new IllegalArgumentException("Name is empty!");
             }
             Objects.requireNonNull(url, "URL is null!");
             Objects.requireNonNull(detector, "Detector is null!");
+            Objects.requireNonNull(emails, "Emails is null!");
             if (period <= 0) {
                 throw new IllegalArgumentException("Period must be greater than 0!");
             }
@@ -48,6 +51,11 @@ public class Configuration {
             this.url = url;
             this.detector = detector;
             this.period = period;
+            this.emails = emails;
+        }
+    
+        public Set<String> getEmails() {
+            return emails;
         }
     
         public String getName() {
@@ -192,12 +200,6 @@ public class Configuration {
     private final long randomMillisecondsScale = TimeUnit.MINUTES.toMicros(3);
     
     private final Map<String, Smtp> smtp = new HashMap<>();
-    
-    private final Set<String> emails = new HashSet<>();
-    
-    public Set<String> getEmails() {
-        return emails;
-    }
     
     public long getRandomMillisecondsScale() {
         return randomMillisecondsScale;

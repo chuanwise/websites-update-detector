@@ -85,10 +85,6 @@ public class WebsitesUpdateDetectorMain {
         if (configuration.getRandomMillisecondsScale() < 0) {
             System.err.println("Random milliseconds scale is smaller than 0, change configuration and restart program, please");
         }
-        if (configuration.getEmails().isEmpty()) {
-            System.err.println("Email is empty, change configuration and restart program, please");
-            return;
-        }
     
         // ready to start server
         final Random random = new Random();
@@ -174,7 +170,7 @@ public class WebsitesUpdateDetectorMain {
                                         "<p>更新前：" + prevCache + "</p>\n" +
                                         "<p>更新后：" + currCache + "</p>";
                                     
-                                    for (String email : configuration.getEmails()) {
+                                    for (String email : website.getEmails()) {
                                         mimeMessage.setRecipient(Message.RecipientType.TO, new InternetAddress(email));
                                         mimeMessage.setSubject(subject);
                                         mimeMessage.setContent(content,"text/html;charset=UTF-8");

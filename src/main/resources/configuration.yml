@@ -15,9 +15,6 @@
 # random query period scale
 #randomMillisecondsScale: 180000
 
-#emails:
-#  - <your email>
-
 #websites:
 #  xidian:
 #    # name is only used in email
@@ -29,3 +26,5 @@
 #      regexp: target="_blank">(?<title>.+?)</a><span>
 #      group: title
 #    period: 60000
+#    emails:
+#      - <your email>
