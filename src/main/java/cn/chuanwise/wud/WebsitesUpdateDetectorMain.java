@@ -168,8 +168,8 @@ public class WebsitesUpdateDetectorMain {
                                     mimeMessage.setFrom(new InternetAddress(smtp.getEmail()));
                                     
                                     // send message to all receipts
-                                    final String subject = "[重要] " + name + " 网站出现更新！";
-                                    final String content = "<h1>" + name + " 网站出现更新！</h1>\n" +
+                                    final String subject = "[重要] " + website.getName() + "出现更新！";
+                                    final String content = "<h1>" + website.getName() + " 网站出现更新！</h1>\n" +
                                         "<h2>查询状态</h2>\n" +
                                         "<ul>\n" +
                                         "<li><b>查询时间</b>：" + DateFormat.getDateTimeInstance().format(System.currentTimeMillis()) + "</p></li>\n" +
