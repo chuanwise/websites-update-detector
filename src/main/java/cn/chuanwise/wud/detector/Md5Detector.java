@@ -50,7 +50,7 @@ public class Md5Detector
             return null;
         }
         if (Arrays.equals(prev, curr)) {
-            logger.trace("没有发现变化");
+            logger.debug("没有发现变化");
             return null;
         }
         cache = curr;

@@ -203,7 +203,7 @@ public class WebsitesUpdateDetectorMain {
                         }
                     }
                 } else {
-                    logger.trace("next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
+                    logger.debug("next query time is " + DateFormat.getDateTimeInstance().format(System.currentTimeMillis() + period) +
                         " ( after " + period + " milliseconds )");
                     service.schedule(this, period, TimeUnit.MILLISECONDS);
                 }

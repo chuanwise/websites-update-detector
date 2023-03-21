@@ -40,7 +40,7 @@ public abstract class AbstractCollectionDetector<T>
             return null;
         }
         if (Objects.equals(curr, prev)) {
-            logger.trace("没有发现变化");
+            logger.debug("没有发现变化");
             return null;
         }
         
