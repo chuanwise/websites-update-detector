@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="300 seconds" debug="false">
 
-    <property name="log.level" value="debug"/>
     <property name="log.max" value="30"/>
     <property name="log.dir" value="logs"/>
     <property name="log.pattern" value="%d{yyyy-MM-dd HH:mm:ss} : %c{16} : %-5p | %m%n"/>
@@ -10,6 +9,12 @@
         <encoder>
             <pattern>${log.pattern}</pattern>
         </encoder>
+
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
     </appender>
 
     <appender name="debugAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -64,10 +69,10 @@
         </filter>
     </appender>
 
-    <root level="info">
+    <root>
         <appender-ref ref="consoleAppender"/>
         <appender-ref ref="infoAppender" />
-        <appender-ref ref="debugAppender" />
         <appender-ref ref="errorAppender" />
+        <appender-ref ref="debugAppender" />
     </root>
 </configuration>
