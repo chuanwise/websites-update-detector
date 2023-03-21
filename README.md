@@ -12,6 +12,40 @@
 * 校园公告，如调剂、复试等信息。
 * 单位公告，如外出、放假等信息。
 
+## 快速开始
+
+### 通过 `Docker` 部署
+
+创建文件夹（例如 `websites-update-detector`），其绝对路径在下文用 `${dir}` 表示。在其中写好 `configuration.yml` 后，执行命令：
+
+```shell
+sudo docker run -v ${dir}:/opt/websites-update-detector/data -d chuanwise/websites-update-detector
+```
+
+其中，`/opt/websites-update-detector/data` 是容器中存储数据的目录，为了持久化数据，请将宿主文件夹挂载到这里。
+
+如果执行命令后在 `docker ps` 中无法找到容器，请查看 `docker logs` 并根据提示操作。
+
+### 直接部署
+
+下载最新的 [RELEASE](https://github.com/Chuanwise/websites-update-detector/releases/) ，在服务器创建一个文件夹作为工作目录，将 `Jar` 文件放入其中。
+
+创建文件 `java.security`，内容填写：
+
+```
+jdk.tls.disabledAlgorithms=SSLv3, TLSv1.1, RC4, DES, MD5withRSA, DH keySize < 1024, EC keySize < 224, 3DES_EDE_CBC, anon, NULL, include jdk.disabled.namedCurves
+```
+
+创建启动脚本，内容为：
+
+```shell
+java -Djava.security.properties=${path}/java.security -jar ${jar}
+```
+
+（其中 `=` 后面填写绝对路径）。
+
+随后启动程序即可。根据程序的提示，修改 `configuration.yml` 里有关邮箱、网站的设置后重启程序即可。
+
 ## 配置
 
 ### 配置文件
@@ -108,25 +142,3 @@ detector:
 detector:
   type: md5
 ```
-
-## 快速开始
-
-### 直接部署
-
-下载最新的 [RELEASE](https://github.com/Chuanwise/websites-update-detector/releases/) ，在服务器创建一个文件夹作为工作目录，将 `Jar` 文件放入其中。
-
-创建文件 `java.security`，内容填写：
-
-```
-jdk.tls.disabledAlgorithms=SSLv3, TLSv1.1, RC4, DES, MD5withRSA, DH keySize < 1024, EC keySize < 224, 3DES_EDE_CBC, anon, NULL, include jdk.disabled.namedCurves
-```
-
-创建启动脚本，内容为：
-
-```shell
-java -Djava.security.properties=${path}/java.security -jar ${jar}
-```
-
-（其中 `=` 后面填写绝对路径）。
-
-随后启动程序即可。根据程序的提示，修改 `configuration.yml` 里有关邮箱、网站的设置后重启程序即可。

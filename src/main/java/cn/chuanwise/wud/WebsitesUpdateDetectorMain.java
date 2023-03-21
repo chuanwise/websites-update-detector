@@ -14,22 +14,23 @@ import javax.mail.internet.MimeMessage;
 import java.io.*;
 import java.text.DateFormat;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class WebsitesUpdateDetectorMain {
     public static void main(String[] args) {
+    
+        final Logger logger = LoggerFactory.getLogger("main");
+    
         final File workingDirectory;
         if (args.length == 0) {
             workingDirectory = new File(System.getProperty("user.dir"));
         } else if (args.length == 1) {
             workingDirectory = new File(args[0]);
         } else {
-            System.err.println("Params: [working-directory = ${user.dir}]");
+            logger.error("Params: [working-directory = ${user.dir}]");
             return;
         }
         
@@ -65,7 +66,7 @@ public class WebsitesUpdateDetectorMain {
             }
             
     
-            System.out.println("Default configuration file generated at " + configurationFile.getAbsolutePath() + ", " +
+            logger.info("Default configuration file generated at " + configurationFile.getAbsolutePath() + ", " +
                 "change it and restart program, please.");
             return;
         }
@@ -79,15 +80,15 @@ public class WebsitesUpdateDetectorMain {
     
         // check if settings is wrong
         if (configuration.getSmtp() == null) {
-            System.err.println("Smtp settings is empty, change configuration and restart program, please");
+            logger.error("Smtp settings is empty, change configuration and restart program, please");
             return;
         }
         if (configuration.getWebsites().isEmpty()) {
-            System.err.println("Website settings is empty, change configuration and restart program, please");
+            logger.error("Website settings is empty, change configuration and restart program, please");
             return;
         }
         if (configuration.getRandomMillisecondsScale() < 0) {
-            System.err.println("Random milliseconds scale is smaller than 0, change configuration and restart program, please");
+            logger.error("Random milliseconds scale is smaller than 0, change configuration and restart program, please");
         }
     
         // ready to start server
